@@ -29,7 +29,7 @@ function show_animejanai_stats()
                 message = "Error during upscale; press ~ to view error in console"
             end
         end
-        
+
         mp.osd_message(message, MAX_DURATION)
         showingMessage = true
     end
