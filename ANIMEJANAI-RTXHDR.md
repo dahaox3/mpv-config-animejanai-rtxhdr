@@ -20,9 +20,10 @@ controllers: the versions in this branch delegate ownership to hybrid.lua.
   explicitly selects a nonzero slot through Manager.
 - The configured inference backend is respected. Enabling HDR no longer
   silently changes TensorRT to DirectML.
-- TensorRT alone uses Vulkan/NVDEC where supported.
-- TensorRT + HDR uses copy/software decode, CUDA upload, native inference,
-  CUDA-to-D3D11 RGB10 bridge, then D3D11 RTX HDR.
+- D3D11 presentation stays active for movies, TensorRT alone, and TensorRT
+  with HDR. Enabling AI no longer destroys the D3D11 window to create Vulkan.
+- TensorRT uses copy/software decode, CUDA upload, native inference and the
+  CUDA-to-D3D11 RGB10 bridge. RTX HDR is appended only when manually enabled.
 - DirectML's existing D3D11 path remains available when selected in Manager.
 - RTX HDR is manually toggled with Ctrl+Alt+H or the HDR menu. The controller
   keeps it at the end of `vf`, including after filters added by other scripts.
@@ -36,12 +37,18 @@ and CUDA upload are still present. No RGBA16 intermediate texture is required
 by the current RGB10 bridge.
 
 Local RTX 4070 Ti / driver 617.42 tests passed default selection, AI/HDR
-toggles, GPU API changes, seeking, resolution/codec changes, HDR10 bypass,
+toggles, seeking, resolution/codec changes, HDR10 bypass,
 subtitles, menus, and WebUI. Sharp Balanced + HDR ran continuously for 60
 seconds with zero frame drops. These checks do not certify every dyphire
 plugin or every driver. The test build has different FFmpeg dependencies
 from the release package, so it is distributed separately from the existing
 player until that packaging difference is resolved.
+
+The stable-window update was checked across ten AI/HDR mode combinations,
+including changing Balanced/Performance and entering/leaving fullscreen. The
+window handle stayed unchanged and no Win32 window teardown occurred during
+the toggles. A brief decode/filter reset can still happen when models change;
+this is distinct from replacing the presentation window.
 
 For standard Balanced 1080p24 High10 to 4K, three same-runtime alternating
 tests measured GPU bridge median 49.57 fps vs copy-back RGB10 median 48.26

@@ -46,8 +46,11 @@ local function apply_pipeline()
     local _,global=read_conf()
     local backend=(global.backend or 'TensorRT'):lower()
     local directml=slot>0 and (backend=='directml' or backend=='ncnn')
-    local bridge=slot>0 and rtx and not directml
-    local api=(slot>0 and not directml and not bridge) and 'vulkan' or 'd3d11'
+    -- Keep the presentation device and HWND stable across AI/HDR toggles.
+    -- CUDA inference also uses the GPU bridge when HDR is off, so enabling
+    -- AI never has to destroy a D3D11 window and replace it with Vulkan.
+    local bridge=slot>0 and not directml
+    local api='d3d11'
     local hwdec=options.movie_hwdec
     if slot>0 then hwdec=bridge and 'auto-copy-safe' or (directml and 'd3d11va' or 'nvdec') end
     local clean=others(mp.get_property_native('vf'))
